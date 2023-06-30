@@ -1,0 +1,25 @@
+version: 0.2
+phases: 
+  install:
+    commands:
+      - echo Nothing to do in install phase
+  pre_build: 
+    commands:
+      - echo Nothing to do in the pre_build phase... 
+  build:
+    commands:
+      - echo Build started on `date`
+      - wget https://github.com/armory/avm/releases/download/v1.1.2/avm-linux-amd64 
+      - chmod +x avm-linux-amd64
+      - mv avm-linux-amd64 /usr/local/bin/avm
+      - PATH=$PATH:/root/.avm/bin
+      - echo $PATH
+      - avm install
+      - which avm
+      - armory
+      - armory version
+      - which armory
+      - armory deploy start -c $CLIENT_ID -s $SECRET -f deployment-template.yaml
+  post_build: 
+    commands:
+      - echo Build completed on `date`

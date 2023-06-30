@@ -1,0 +1,72 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: prod-eks-sample-app
+  name: hello-eks-a
+  labels:
+    app: hello-eks-a
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello-eks-a
+  template:
+    metadata:
+      labels:
+        app: hello-eks-a
+    spec:
+      containers:
+      - name: hello
+        image: public.ecr.aws/aws-containers/hello-eks-anywhere:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: NODE_NAME
+          value: "Running website version 0.0.3"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: prod-eks-sample-app
+  name: service-eks-sample-app
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+  type: NodePort
+  selector:
+    app: hello-eks-a
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: prod-eks-sample-app
+  name: ingress-eks-sample-app
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: service-eks-sample-app
+              port:
+                number: 80

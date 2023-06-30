@@ -1,0 +1,122 @@
+version: v1
+kind: kubernetes
+
+# The name of the application to deploy.
+application: eks-sample-app
+
+# Targets is a map of deployment environments, keyed by name.
+# A named target is an (account, namespace) tuple; the tuple must be unique
+# within a deployment. You can deploy to one or more targets within
+# a deployment pipeline.
+targets:
+
+  # Target name. Use a descriptive value (e.g., prod or staging).
+  staging:
+
+      # The name that you assigned to the deployment target cluster when you installed the RNA.
+      account: dev-eks
+
+      # (Recommended) Set the namespace that the app gets deployed to. 
+      # Overrides the namespaces that are in your manifests.
+      namespace: staging-eks-sample-app
+
+      # A named strategy from the strategies block.
+      strategy: rolling
+
+  # Target name. Use a descriptive value (e.g., prod or staging).
+  production:
+
+      # The name that you assigned to the deployment target cluster when you installed the RNA.
+      account: dev-eks
+
+      # (Recommended) Set the namespace that the app gets deployed to. 
+      # Overrides the namespaces that are in your manifests.
+      namespace: prod-eks-sample-app
+
+      # A named strategy from the strategies block.
+      strategy: prod-bluegreen
+      constraints:
+        #dependsOn: [staging]
+        #beforeDeployment:
+          #- pause:
+              #untilApproved: true
+
+manifests:
+  # This will read all yaml|yml files in a dir and deploy all manifests in that directory to all targets, or their specified target.
+  - path: manifests/staging-eks-namespace.yml
+    targets: [staging]
+
+  - path: manifests/prod-eks-namespace.yml
+    targets: [production]
+
+  - path: manifests/hello-eks-a.yaml
+
+
+# A map of deployment strategies, keyed by name.
+strategies:
+
+  # Strategy name. Use a descriptive name (e.g., "prod-strategy").
+  # Use a strategy by assigning it to a deployment target above.
+  prod-strategy:
+
+    # Define a blue/green deployment strategy.
+    blueGreen:
+
+      # The redirectTrafficAfter steps are pre-conditions for exposing the new
+      # version to the activeService. The steps are executed
+      # in parallel.
+      redirectTrafficAfter:
+
+        # A pause step type.
+        # The deployment stops until the pause behavior is complete.
+        # The pause type defined below is a duration-based pause.
+        - pause:
+
+            # Pause the deployment for <duration> <unit> (e.g., pause for 5 minutes).
+            # A duration-based pause should omit the "untilApproved" flag.
+            duration: 1
+
+            # The pause's time unit. One of seconds, minutes, or hours.
+            # Required if duration is set.
+            unit: seconds
+
+        # A pause step type.
+        # The pause type defined below is a judgment-based pause.
+        - pause:
+
+            # Pause the deployment until manual approval.
+            # You can approve or rollback a deployment in the Cloud Console.
+            # Do not provide a "duration" or "unit" value when defining
+            # a judgment-based pause.
+            untilApproved: true
+
+      # The shutDownOldVersionAfter steps are pre-conditions for deleting the old
+      # version of your software. The steps are executed in parallel.
+      shutDownOldVersionAfter:
+        - pause:
+            untilApproved: true
+
+  rolling:
+    canary:
+      steps:
+        - setWeight:
+            weight: 100
+
+  prod-rolling:
+    canary:
+      steps:
+        - setWeight:
+            weight: 100
+
+  prod-bluegreen:
+    # This specifies the deployment strategy type
+    blueGreen:
+      activeService: service-eks-sample-app
+      # List of what needs to happen before redirecting traffic
+      redirectTrafficAfter:
+        - pause:
+            untilApproved: True
+      # List of what needs to happen before shutting down the old version
+      shutDownOldVersionAfter:
+        - pause:
+            untilApproved: True
