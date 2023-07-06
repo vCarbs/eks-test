@@ -14,7 +14,7 @@ targets:
   staging:
 
       # The name that you assigned to the deployment target cluster when you installed the RNA.
-      account: dev-eks
+      account: armory-eks-dev
 
       # (Recommended) Set the namespace that the app gets deployed to. 
       # Overrides the namespaces that are in your manifests.
@@ -27,7 +27,7 @@ targets:
   production:
 
       # The name that you assigned to the deployment target cluster when you installed the RNA.
-      account: dev-eks
+      account: armory-eks-prod
 
       # (Recommended) Set the namespace that the app gets deployed to. 
       # Overrides the namespaces that are in your manifests.

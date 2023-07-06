@@ -23,7 +23,7 @@ spec:
         - containerPort: 80
         env:
         - name: NODE_NAME
-          value: "Running website version 0.0.3"
+          value: "Running website version 0.0.1"
         - name: POD_NAME
           valueFrom:
             fieldRef:
@@ -46,7 +46,7 @@ spec:
     - port: 80
       targetPort: 80
       protocol: TCP
-  type: NodePort
+  type: LoadBalancer
   selector:
     app: hello-eks-a
 ---
